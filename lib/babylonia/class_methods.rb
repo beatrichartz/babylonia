@@ -1,9 +1,25 @@
 require 'yaml'
 require 'i18n'
 
+# Let your users translate their content into their languages without additional tables or columns in your tables
+# @author Beat Richartz
+# @version 0.0.2
+# @since 0.0.1
+#
 module Babylonia
+  
+  # Class methods to extend a class with in order to make it able to handle translatable attributes
+  #
   module ClassMethods
-    
+  
+    # Main class method ob Babylonia. Use to make attributes translatable
+    # @param [Symbol] fields the attributes to translate
+    # @param [Hash] options The options for translation
+    # @option [Symbol, Proc, String] locale The current locale - can be either a symbol that will be sent to the instance, a proc that will get called with the instance and the attribute name, or a string that will get symbolized as a constant locale. Defaults to I18n.locale at the time of use
+    # @option [Symbol, Proc, String] default_locale The fallback / default locale - can be either a symbol that will be sent to the instance, a proc that will get called with the instance and the attribute name, or a string that will get symbolized as a constant locale. Defaults to I18n.default_locale
+    # @option [Boolean] fallback Wheter to fallback to the default locale or not
+    # @option [String] placeholder The placeholder to use for missing translations
+    #
     def build_babylonian_tower_on(*fields)
       babylonian_options = fields.last.is_a?(Hash) ? fields.pop : {}
       babylonian_options[:locale]          ||= lambda { |r, f| I18n.locale }
@@ -75,8 +91,8 @@ module Babylonia
           o.call self, field
         elsif o.is_a? Symbol
           send o
-        else
-          o
+        elsif o.is_a? String
+          o.to_sym
         end
       end
     end
