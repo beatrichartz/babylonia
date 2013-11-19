@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    babylonia (0.1.0)
+    babylonia (0.0.1)
       i18n (>= 0.5.0)
 
 GEM

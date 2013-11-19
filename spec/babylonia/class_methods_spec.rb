@@ -235,6 +235,32 @@ describe Babylonia::ClassMethods do
             subject.grasslands(:it).should == 'SOME ITALIAN'
           end
         end
+        context "deleting a value" do
+          context "with a string" do
+            it "should be deleted" do
+              subject.grasslands = ''
+              subject.grasslands.should be_nil
+            end
+          end
+          context "with nil" do
+            it "should be deleted" do
+              subject.grasslands = nil
+              subject.grasslands.should be_nil
+            end 
+          end
+          context "with a hash containing an empty string" do
+            it "should be deleted" do
+              subject.grasslands = {it: ''}
+              subject.grasslands(:it).should be_nil
+            end 
+          end
+          context "with a hash containing nil" do
+            it "should be deleted" do
+              subject.grasslands = {it: nil}
+              subject.grasslands(:it).should be_nil
+            end 
+          end
+        end
       end
     end
   end
