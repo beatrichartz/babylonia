@@ -93,6 +93,8 @@ module Babylonia
           send o
         elsif o.is_a? String
           o.to_sym
+        else
+          o
         end
       end
     end
