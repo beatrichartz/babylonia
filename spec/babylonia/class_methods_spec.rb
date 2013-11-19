@@ -8,7 +8,7 @@ describe Babylonia::ClassMethods do
     attr_accessor :marshes, :grasslands, :desert, :sky
     
     build_babylonian_tower_on :marshes
-    build_babylonian_tower_on :grasslands, locales: %i(pi de en), locale: :architects_tongue, default_locale: lambda {|r, f| r.builders_tongue || :en }
+    build_babylonian_tower_on :grasslands, locales: [:pi, :de, :en], locale: :architects_tongue, default_locale: lambda {|r, f| r.builders_tongue || :en }
     build_babylonian_tower_on :desert, :sky, fallback: false, placeholder: lambda {|r, field| "<span class='missing translation'>Translation missing for " + field.to_s + "</span>"}
   
     def architects_tongue
@@ -126,7 +126,7 @@ describe Babylonia::ClassMethods do
         subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the translated languages of the field" do
-        subject.marshes_languages.sort.should == %i(de en it)
+        subject.marshes_languages.sort.should == [:de, :en, :it]
       end
     end
   end
