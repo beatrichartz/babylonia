@@ -1,0 +1,85 @@
+= babylonia {<img src="https://secure.travis-ci.org/beatrichartz/babylonia.png?branch=master" />}[http://travis-ci.org/beatrichartz/babylonia] {<img src="https://gemnasium.com/beatrichartz/babylonia.png" alt="Dependency Status" />}[https://gemnasium.com/beatrichartz/babylonia] {<img src="https://codeclimate.com/github/beatrichartz/babylonia.png" />}[https://codeclimate.com/github/beatrichartz/babylonia]
+Let there be languages for your users!
+
+== Installation
+In your gemfile
+  gem "babylonia"
+Or via the gem command
+  gem install babylonia
+
+== For Rails
+Try {babylonia-rails}[http://github.com/beatrichartz/babylonia-rails]
+
+== Why
+Out of the necessity to let users translate page content. This gem does not add columns or records to your tables, or tables to your database. It is implemented based on YAML and stores the given data in a string.
+
+== Persistence is all yours
+Persistence is all yours. There will be a string for you to store, and you should just make sure it can get stored. That means that depending on the count of languages you let your users handle, and on the length of strings you expect to put them in, you should have a look at the different BLOB types your storage offers. A mysql TEXT field can soon run out of space (it takes up to 21,844 characters), but a MEDIUMTEXT e.g. is pretty gigantic and should keep the crocodiles out of your sewers.
+
+== Gotchas
+Since the entire string will get stored in one field, you'll have to stop and ask yourself a question: Do you want to do database queries on the data in different languages? (like, let's say, sort by the translation users put in as an english translation for the field) If yes, it might be better for you to take a column based approach.
+
+== Basic Usage
+Let's assume a pretty basic class. Extend it with the Babylonian Class method
+  class Transsylvania
+    extend Babylonia::ClassMethods
+    attr_accessor :text
+    #now, build that tower
+    build_babylonian_tower_on :text
+  end
+  
+Now, do this:
+
+  t = Transsylvania.new
+  I18n.locale = :en
+  t.text = 'Pretty french, ist es nicht?'
+  I18n.locale = :de
+  t.text #=> nil
+  I18n.locale = :en
+  t.text #=> 'Pretty french, ist es nicht?'
+  
+Or this:
+
+  t.text = {en: 'This is english', fr: 'This is french'}
+  I18n.locale = :fr
+  t.text #=> :fr
+  
+== Extended Usage
+Let's once assume a pretty basic class. Extend it with the Babylonian Class method and add some options
+  class Transsylvania
+    attr_accessor :text, :name
+    
+    extend Babylonia::ClassMethods
+    
+    def some_locale
+      :it
+    end
+    
+    def locale
+      :en
+    end
+    
+    #now, build that tower
+    build_babylonian_tower_on :text, :name,
+                              locale: :some_locale, # will call the method some_locale on the instance
+                              default_locale: lambda {|instance, field| field == :text ? instance.locale : :de}, #will get evaluated at runtime
+                              fallback: false #=> will not fallback to default locale if no translation for locale is present
+                              placeholder: "<span class='translation missing'>Translation missing in Transsylvania</span>" a placeholder if no translation is present
+  end
+== Contributing to babylonia
+
+Please note that only open source APIs can be accepted as contributions to this gem. Private / Premium APIs have to be written as your own extension and will not be added to the gem code.
+ 
+* Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
+* Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
+* Fork the project.
+* Start a feature/bugfix branch.
+* Commit and push until you are happy with your contribution.
+* Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
+* Make sure to add documentation for it. This is important so everyone else can see what your code can do.
+* Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
+
+== Copyright
+
+Copyright (c) 2013 Beat Richartz. See LICENSE.txt for
+further details.

@@ -1,0 +1,1 @@
+require "babylonia/class_methods"
