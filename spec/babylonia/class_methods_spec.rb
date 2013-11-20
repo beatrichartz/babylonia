@@ -1,27 +1,16 @@
 require 'spec_helper'
 
-describe Babylonia::ClassMethods do
-  
-  class BabylonianFields
-    extend Babylonia::ClassMethods
-    
-    attr_accessor :marshes, :grasslands, :desert, :sky
-    
-    build_babylonian_tower_on :marshes
-    build_babylonian_tower_on :grasslands, available_locales: [:pi, :de, :en, :it], locale: :architects_tongue, default_locale: lambda {|r, f| r.builders_tongue || :en }
-    build_babylonian_tower_on :desert, :sky, fallback: false, placeholder: lambda {|r, field| "<span class='missing translation'>Translation missing for " + field.to_s + "</span>"}
-  
-    def architects_tongue
-      :pi
-    end
-    
-    def builders_tongue
-      nil
-    end
-  end
-  
+describe Babylonia::ClassMethods do  
   context "without options" do
     subject { BabylonianFields.new }
+    class BabylonianFields
+      extend Babylonia::ClassMethods
+    
+      attr_accessor :marshes, :sky
+    
+      build_babylonian_tower_on :marshes, :sky
+    end
+    
     before(:each) do
       I18n.stub locale: :en, default_locale: :de, available_locales: [:de, :en, :it]
     end
@@ -116,7 +105,7 @@ describe Babylonia::ClassMethods do
         end
       end
     end
-    describe "marshes=" do
+    describe "#marshes=" do
       context "with no existing data" do
         context "with a string" do
           it "should set the current locales data" do
@@ -157,7 +146,7 @@ describe Babylonia::ClassMethods do
         end
       end
     end
-    describe "marshes_hash" do
+    describe "#marshes_hash" do
       before(:each) do
         subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
@@ -165,26 +154,109 @@ describe Babylonia::ClassMethods do
         subject.marshes_hash.should == {it: 'SOME ITALIAN', en: 'SOME ENGLISH', de: 'SOME DEUTSCH'}
       end
     end
-    describe "marshes_languages" do
+    describe "#locales" do
       before(:each) do
         subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.sky_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the translated languages of the field" do
-        subject.marshes_languages.sort.should == [:de, :en, :it]
+        subject.locales.sort.should == [:de, :en, :it]
+      end
+    end
+    describe "#has_locale?" do
+      before(:each) do
+        subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.sky_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+      end
+      context "with the locale present in the translation hashes" do
+        it "should return true" do
+          subject.should be_has_locale(:it)
+        end
+      end
+      context "with the locale not present in the translation hashes" do
+        it "should return true" do
+          subject.should_not be_has_locale(:pi)
+        end
+      end
+    end
+    describe "#available_locales" do
+      before(:each) do
+        I18n.stub available_locales: [:de, :en]
+      end
+      it "should return available locales" do
+        subject.available_locales.sort.should == [:de, :en]
+      end
+    end
+    describe "#has_available_locale" do
+      before(:each) do
+        I18n.stub available_locales: [:de, :en]
+      end
+      context "with an available locale" do
+        it "should return true" do
+          subject.should be_has_available_locale(:de)
+        end
+      end
+      context "with an available locale" do
+        it "should return true" do
+          subject.should_not be_has_available_locale(:it)
+        end
+      end
+    end
+    describe "#localized?" do
+      context "with a localized attribute" do
+        it "should return true" do
+          subject.should be_localized(:sky)
+        end
+      end
+      context "with a unlocalized attribute" do
+        it "should return true" do
+          subject.should_not be_localized(:desert)
+        end
+      end
+    end
+    describe "#missing_translation_placeholder" do
+      it "should return nil" do
+        subject.missing_translation_placeholder('FIELD').should be_nil
+      end
+    end
+    describe "#locale_fallback?" do
+      it "should return false" do
+        subject.should be_locale_fallback
       end
     end
   end
   
-  context "with options" do
-    subject { BabylonianFields.new }
+  context "with options opposite the defaults" do
+    class BabylonianFieldsWithOptions
+      extend Babylonia::ClassMethods
+    
+      attr_accessor :grasslands, :desert
+    
+      build_babylonian_tower_on :grasslands, :desert,
+                                available_locales: [:pi, :de, :en, :it],
+                                locale: :architects_tongue,
+                                default_locale: lambda {|r| r.builders_tongue || :en },
+                                fallback: false,
+                                placeholder: lambda {|r, field| "<span class='missing translation'>Translation missing for " + field.to_s + "</span>"}
+  
+      def architects_tongue
+        :pi
+      end
+    
+      def builders_tongue
+        nil
+      end
+    end
+    
+    subject { BabylonianFieldsWithOptions.new }
     before(:each) do
       I18n.stub locale: :en, default_locale: :de
     end
     
     describe "#grasslands" do
       context "with no data" do
-        it "should return nil" do
-          subject.grasslands.should be_nil
+        it "should return the placeholder" do
+          subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
         end
       end
       context "with some raw data" do
@@ -204,12 +276,12 @@ describe Babylonia::ClassMethods do
         before(:each) do
           subject.stub grasslands_raw: "---\n:en: FALLBACK"
         end
-        it "should return the fallback data" do
-          subject.grasslands.should == "FALLBACK"
+        it "should not return the fallback data" do
+          subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
         end
         context "with a locale argument" do
-          it "should return the fallback" do
-            subject.grasslands(:pi).should == 'FALLBACK'
+          it "should return the not return the fallback" do
+            subject.grasslands(:pi).should == "<span class='missing translation'>Translation missing for grasslands</span>"
           end
         end
       end
@@ -218,11 +290,11 @@ describe Babylonia::ClassMethods do
           subject.stub grasslands_raw: "---\n:it: NO_FALLBACK"
         end
         it "should return the fallback data" do
-          subject.grasslands.should be_nil
+          subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
         end
         context "with a locale argument" do
           it "should return the fallback" do
-            subject.grasslands(:en).should be_nil
+            subject.grasslands(:en).should == "<span class='missing translation'>Translation missing for grasslands</span>"
           end
         end
       end
@@ -283,31 +355,93 @@ describe Babylonia::ClassMethods do
           context "with a string" do
             it "should be deleted" do
               subject.grasslands = ''
-              subject.grasslands.should be_nil
+              subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
             end
           end
           context "with nil" do
             it "should be deleted" do
               subject.grasslands = nil
-              subject.grasslands.should be_nil
+              subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
             end 
           end
           context "with a hash containing an empty string" do
             it "should be deleted" do
               subject.grasslands = {it: ''}
-              subject.grasslands(:it).should be_nil
+              subject.grasslands(:it).should == "<span class='missing translation'>Translation missing for grasslands</span>"
             end 
           end
           context "with a hash containing nil" do
             it "should be deleted" do
               subject.grasslands = {it: nil}
-              subject.grasslands(:it).should be_nil
+              subject.grasslands(:it).should == "<span class='missing translation'>Translation missing for grasslands</span>"
             end 
           end
         end
       end
     end
+    describe "#locales" do
+      before(:each) do
+        subject.grasslands_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.desert_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+      end
+      it "should return the translated languages of the field" do
+        subject.locales.sort.should == [:de, :en, :it]
+      end
+    end
+    describe "#has_locale?" do
+      before(:each) do
+        subject.grasslands_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.desert_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+      end
+      context "with the locale present in the translation hashes" do
+        it "should return true" do
+          subject.should be_has_locale(:it)
+        end
+      end
+      context "with the locale not present in the translation hashes" do
+        it "should return true" do
+          subject.should_not be_has_locale(:pi)
+        end
+      end
+    end
+    describe "#available_locales" do
+      it "should return available locales" do
+        subject.available_locales.sort.should == [:de, :en, :it, :pi]
+      end
+    end
+    describe "#has_available_locale" do
+      context "with an available locale" do
+        it "should return true" do
+          subject.should be_has_available_locale(:pi)
+        end
+      end
+      context "with an available locale" do
+        it "should return true" do
+          subject.should_not be_has_available_locale(:gb)
+        end
+      end
+    end
+    describe "#localized?" do
+      context "with a localized attribute" do
+        it "should return true" do
+          subject.should be_localized(:grasslands)
+        end
+      end
+      context "with a unlocalized attribute" do
+        it "should return true" do
+          subject.should_not be_localized(:fields)
+        end
+      end
+    end
+    describe "#missing_translation_placeholder" do
+      it "should return the defined placeholder for the field" do
+        subject.missing_translation_placeholder('FIELD').should == "<span class='missing translation'>Translation missing for FIELD</span>"
+      end
+    end
+    describe "#locale_fallback?" do
+      it "should return false" do
+        subject.should_not be_locale_fallback
+      end
+    end
   end
-  
-  
 end
