@@ -11,19 +11,34 @@ module Babylonia
   # Class methods to extend a class with in order to make it able to handle translatable attributes
   #
   module ClassMethods
+    
+    private
+
+    def add_to_handled_babylonian_fields data
+      instance_variable_set(:@handled_babylonian_fields, (instance_variable_get(:@handled_babylonian_fields) || []) + data.map(&:to_sym))
+    end
   
+    public
+    # Store all handled fields in a class instance variable
+    #
+    def handled_babylonian_fields
+      instance_variable_get(:@handled_babylonian_fields) || instance_variable_set(:@handled_babylonian_fields, [])
+    end
     # Main class method ob Babylonia. Use to make attributes translatable
     # @param [Symbol] fields the attributes to translate
     # @param [Hash] options The options for translation
-    # @option [Symbol, Proc, String] locale The current locale - can be either a symbol that will be sent to the instance, a proc that will get called with the instance and the attribute name, or a string that will get symbolized as a constant locale. Defaults to I18n.locale at the time of use
-    # @option [Symbol, Proc, String] default_locale The fallback / default locale - can be either a symbol that will be sent to the instance, a proc that will get called with the instance and the attribute name, or a string that will get symbolized as a constant locale. Defaults to I18n.default_locale
+    # @option [Symbol, Proc, String] locale The current locale - can be either a symbol that will be sent to the instance, a locale symbol that is included in available_locales or a proc that will get called with the instance and the attribute name. Defaults to I18n.locale at the time of use
+    # @option [Symbol, Proc, String] default_locale The fallback / default locale - can be either a symbol that will be sent to the instance, a locale symbol that is included in available_locales, a proc that will get called with the instance and the attribute name
+    # @option [Symbol, Proc, Array] available_locales The available locales - can be either a symbol that will be sent to the instance, a proc that will get called with the instance and the attribute name, or an Array of symbols of available locales. Defaults to I18n.available_locales at the time of use.
     # @option [Boolean] fallback Wheter to fallback to the default locale or not
     # @option [String] placeholder The placeholder to use for missing translations
     #
     def build_babylonian_tower_on(*fields)
       babylonian_options = fields.last.is_a?(Hash) ? fields.pop : {}
+      add_to_handled_babylonian_fields fields
       babylonian_options[:locale]          ||= lambda { |r, f| I18n.locale }
       babylonian_options[:default_locale]  ||= lambda { |r, f| I18n.default_locale }
+      babylonian_options[:available_locales] ||= lambda { |r, f| I18n.available_locales }
       babylonian_options[:fallback]        = true if babylonian_options[:fallback].nil?
       
       fields.each do |field|
@@ -59,6 +74,24 @@ module Babylonia
           send(:"#{field}_hash").keys
         end
         
+        define_method :has_translated_attribute? do |attr|
+          self.class.handled_babylonian_fields.include?(attr.to_sym)
+        end
+        
+        # Return if a translation in the language is stored for the field
+        # @return [Boolean] True if a translation is stored
+        #
+        define_method :"#{field}_has_locale?" do |locale|
+          send(:"#{field}_languages").include?(locale.to_sym)
+        end
+        
+        # Return if a locale is theoretically available for the field
+        # @return [Boolean] True if the language is available
+        #
+        define_method :"#{field}_has_available_locale?" do |locale|
+          evaluate_babylonian_option!(:available_locales, field).include?(locale.to_sym)
+        end
+        
         # Set the field to a value. This either takes a string or a hash
         # If given a String, the current locale is set to this value
         # If given a Hash, the hash is merged into the current translation hash, and empty values are purged
@@ -74,6 +107,7 @@ module Babylonia
           if data.is_a?(String)
             current_hash.merge! evaluate_babylonian_option!(:locale, field) => data
           elsif data.is_a?(Hash)
+            data.delete_if{|k,v| !send(:"#{field}_has_available_locale?", k) }
             current_hash.merge! data
           end
           
@@ -83,16 +117,23 @@ module Babylonia
         alias_method :"#{field}=", :"#{field}_translated="
       end
       
-      define_method :evaluate_babylonian_option! do |option, field|
+      # Define method missing to be able to access a language directly
+      define_method :method_missing do |meth, *args, &block|
+        if (m = meth.to_s.match(/\A([^_]+)_(\w+)(=)?\z/).to_a[1..3]) && has_translated_attribute?(m[0]) && send(:"#{m[0]}_has_available_locale?", m[1])
+          send(m[0] + m[2].to_s, m[2] ? {m[1].to_sym => args.first} : m[1].to_sym)
+        else
+          super(meth, *args, &block)
+        end
+      end
+      
+      define_method :evaluate_babylonian_option! do |option, field, recursion=false|
         options = self.class.instance_variable_get :"@babylonian_options_for_#{field}"
 
         o = options[option]
-        if o.is_a? Proc
+        if o.is_a?(Proc)
           o.call self, field
-        elsif o.is_a? Symbol
+        elsif o.is_a?(Symbol) && (recursion || !evaluate_babylonian_option!(:available_locales, field, true).include?(o))
           send o
-        elsif o.is_a? String
-          o.to_sym
         else
           o
         end

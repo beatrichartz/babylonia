@@ -8,7 +8,7 @@ describe Babylonia::ClassMethods do
     attr_accessor :marshes, :grasslands, :desert, :sky
     
     build_babylonian_tower_on :marshes
-    build_babylonian_tower_on :grasslands, locales: [:pi, :de, :en], locale: :architects_tongue, default_locale: lambda {|r, f| r.builders_tongue || :en }
+    build_babylonian_tower_on :grasslands, available_locales: [:pi, :de, :en, :it], locale: :architects_tongue, default_locale: lambda {|r, f| r.builders_tongue || :en }
     build_babylonian_tower_on :desert, :sky, fallback: false, placeholder: lambda {|r, field| "<span class='missing translation'>Translation missing for " + field.to_s + "</span>"}
   
     def architects_tongue
@@ -23,7 +23,7 @@ describe Babylonia::ClassMethods do
   context "without options" do
     subject { BabylonianFields.new }
     before(:each) do
-      I18n.stub locale: :en, default_locale: :de
+      I18n.stub locale: :en, default_locale: :de, available_locales: [:de, :en, :it]
     end
     
     describe "#marshes" do
@@ -68,6 +68,50 @@ describe Babylonia::ClassMethods do
         context "with a locale argument" do
           it "should return the fallback" do
             subject.marshes(:en).should be_nil
+          end
+        end
+      end
+    end
+    describe "methods via method missing" do
+      context "getters" do
+        context "with the missing method matching the pattern FIELD_LANGUAGE" do
+          let(:meth) { :marshes_en }
+          it "should call the attribute method with an argument" do
+            subject.should_receive(:marshes).with(:en).once
+            subject.send(meth)
+          end
+        end
+        context "with the missing method not matching the pattern" do
+          let(:meth) { :marshes_something_else_entirely }
+          it "should raise Method Missing" do
+            lambda { subject.send(meth) }.should raise_error(NoMethodError)
+          end
+        end
+        context "with the missing method matching the pattern but an unavailable language" do
+          let(:meth) { :marshes_he }
+          it "should raise Method Missing" do
+            lambda { subject.send(meth) }.should raise_error(NoMethodError)
+          end
+        end
+      end
+      context "setters" do
+        context "with the missing method matching the pattern FIELD_LANGUAGE=" do
+          let(:meth) { :marshes_en= }
+          it "should call the attribute method with an argument" do
+            subject.should_receive(:marshes=).with(en: 'DATA').once
+            subject.send(meth, 'DATA')
+          end
+        end
+        context "with the missing method not matching the pattern" do
+          let(:meth) { :marshes_something_else_entirely }
+          it "should raise Method Missing" do
+            lambda { subject.send(meth) }.should raise_error(NoMethodError)
+          end
+        end
+        context "with the missing method matching the pattern but an unavailable language" do
+          let(:meth) { :marshes_he }
+          it "should raise Method Missing" do
+            lambda { subject.send(meth) }.should raise_error(NoMethodError)
           end
         end
       end
