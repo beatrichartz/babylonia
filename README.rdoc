@@ -66,6 +66,20 @@ Let's once assume a pretty basic class. Extend it with the Babylonian Class meth
                               fallback: false #=> will not fallback to default locale if no translation for locale is present
                               placeholder: "<span class='translation missing'>Translation missing in Transsylvania</span>" a placeholder if no translation is present
   end
+
+== Neat Helpers
+Got to have helpers to build that tower with: These come with every babylonian tower built:
+  t = Transsylvania.new
+  t.locale #=> returns the current locale
+  t.locales #=> returns every locale present in each(!) translated field
+  t.has_locale?(locale) #=> returns true if all(!) fields are translated in that locale
+  t.available_locales #=> returns the locales available for translation, but not necessarily present in each translated field
+  t.has_available_locale? #=> returns true if a locale is available for translation
+  t.default_locale #=> returns the current default locale
+  t.locale_fallback? #=> returns true if the translations will fall back to the default locale
+  t.missing_translation_placeholder(field) #=> Returns a placeholder for missing translation for field, if defined
+  t.localized?(attribute) #=> returns if attribute is localized
+  
 == Contributing to babylonia
 
 Please note that only open source APIs can be accepted as contributions to this gem. Private / Premium APIs have to be written as your own extension and will not be added to the gem code.

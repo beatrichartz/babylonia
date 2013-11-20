@@ -126,18 +126,18 @@ module Babylonia
         evaluate_localization_option!(:available_locales)
       end
       
-      # Return if an attribute is localized
-      # @return [Boolean] True if the attribute is localized
-      # 
-      define_method :localized? do |attr|
-        fields.include?(attr.to_sym)
-      end
-      
       # Return if a locale is theoretically available in all translated fields
       # @return [Boolean] True if the language is available
       #
       define_method :has_available_locale? do |locale|
         available_locales.include?(locale.to_sym)
+      end
+      
+      # Return if an attribute is localized
+      # @return [Boolean] True if the attribute is localized
+      # 
+      define_method :localized? do |attr|
+        fields.include?(attr.to_sym)
       end
       
       # Define method missing to be able to access a language directly
