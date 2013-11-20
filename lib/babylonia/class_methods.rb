@@ -30,14 +30,15 @@ module Babylonia
       fields.each do |field|
         # Alias method chain the field to a translated value
         # @param [Symbol] locale Pass a locale to get the field translation in this specific locale
+        # @param [Boolean] fallback Whether a fallback should be used, defaults to true
         # @return [String, NilClass] Either the string with the translation, the fallback, the placeholder or nil
         # @example Call a field in italian
         #   your_instance.field(:it) #=> "Translation" 
         #
-        define_method :"#{field}_translated" do |l=nil|
+        define_method :"#{field}_translated" do |l=nil, options={fallback: true}|
           field_hash    = send(:"#{field}_hash")
           translation   = field_hash[l || locale]
-          translation   = field_hash[default_locale] if translation.nil? or translation.empty? and locale_fallback?
+          translation   = field_hash[default_locale] if translation.nil? or translation.empty? and options[:fallback] and locale_fallback?
           (translation.nil? or translation.empty?) ? missing_translation_placeholder(field) : translation
         end
         alias_method :"#{field}_raw", field
@@ -141,9 +142,20 @@ module Babylonia
       end
       
       # Define method missing to be able to access a language directly
+      # Enables to call a language virtual attribute directly
+      # @note Since the virtual attribute is called directly, there is no fallback on this unless you set it to true
+      # @example Call a getter directly
+      #   object.field_de #=> 'DEUTSCH'
+      # @example Call a setter directly
+      #   object.field_de = 'DEUTSCH'
+      # @example Call an untranslated field
+      #   object.field_it #=> nil
+      #
+      # @example Call a field with fallback
+      #   object.field_it(fallback: true)
       define_method :method_missing do |meth, *args, &block|
         if (m = meth.to_s.match(/\A([^_]+)_(\w+)(=)?\z/).to_a[1..3]) && localized?(m[0]) && has_available_locale?(m[1])
-          send(m[0] + m[2].to_s, m[2] ? {m[1].to_sym => args.first} : m[1].to_sym)
+          m[2] ? send(m[0] + m[2].to_s, {m[1].to_sym => args.first}) : send(m[0], m[1].to_sym, args.first || {})
         else
           super(meth, *args, &block)
         end

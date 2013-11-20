@@ -32,6 +32,11 @@ describe Babylonia::ClassMethods do
           it "should return the translation in that locale" do
             subject.marshes(:de).should == 'FALLBACK'
           end
+          context "with fallback to false" do
+            it "should return nil" do
+              subject.marshes(:it, fallback: false).should be_nil
+            end
+          end
         end
       end
       context "with only fallback data" do
@@ -66,8 +71,15 @@ describe Babylonia::ClassMethods do
         context "with the missing method matching the pattern FIELD_LANGUAGE" do
           let(:meth) { :marshes_en }
           it "should call the attribute method with an argument" do
-            subject.should_receive(:marshes).with(:en).once
+            subject.should_receive(:marshes).with(:en, {}).once
             subject.send(meth)
+          end
+        end
+        context "with the missing method matching the pattern FIELD_LANGUAGE and a fallback argument" do
+          let(:meth) { :marshes_en }
+          it "should call the attribute method with the fallback argument" do
+            subject.should_receive(:marshes).with(:en, {fallback: true}).once
+            subject.send(meth, fallback: true)
           end
         end
         context "with the missing method not matching the pattern" do
@@ -269,6 +281,11 @@ describe Babylonia::ClassMethods do
         context "with a locale argument" do
           it "should return the translation in that locale" do
             subject.grasslands(:de).should == 'FALLBACK'
+          end
+          context "with fallback to false" do
+            it "should return the placeholder" do
+              subject.grasslands(:gb, fallback: false).should == "<span class='missing translation'>Translation missing for grasslands</span>"
+            end
           end
         end
       end
