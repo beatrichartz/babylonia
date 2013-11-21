@@ -51,16 +51,16 @@ There are virtual attributes for you to work with
   t.text_de = 'Make it more Deutsch'
   t.text_de #=> 'Make it more Deutsch'
   
-They come in especially handy in forms
+They come in especially handy in forms, since they do not(!) use a fallback unless used with `fallback: true`
 
   <form action="/do" method="POST">
     <label for="english_translation">
       English Translation Here Please
-      <input type="text" name="text_en"/>
+      <input type="text" name="text_de" value="<%= form_object.text_en %>"/>
     </label>
     <label for="deutsche_uebersetzung">
       Deutsche Übersetzung hier
-      <input type="text" name="text_de"/>
+      <input type="text" name="text_de" value="<%= form_object.text_de %>"/>
     </label>
     <input type="submit" name="Go"/>
   </form>
