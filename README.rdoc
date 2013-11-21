@@ -42,7 +42,28 @@ Or this:
 
   t.text = {en: 'This is english', fr: 'This is french'}
   I18n.locale = :fr
-  t.text #=> :fr
+  t.text #=> 'This is french'
+  
+== Virtual Attributes
+There are virtual attributes for you to work with
+
+  t = Transsylvania.new
+  t.text_de = 'Make it more Deutsch'
+  t.text_de #=> 'Make it more Deutsch'
+  
+They come in especially handy in forms
+
+  <form action="/do" method="POST">
+    <label for="english_translation">
+      English Translation Here Please
+      <input type="text" name="text_en"/>
+    </label>
+    <label for="deutsche_uebersetzung">
+      Deutsche Übersetzung hier
+      <input type="text" name="text_de"/>
+    </label>
+    <input type="submit" name="Go"/>
+  </form>
   
 == Extended Usage
 Let's once assume a pretty basic class. Extend it with the Babylonian Class method and add some options
