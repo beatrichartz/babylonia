@@ -3,10 +3,101 @@ require 'i18n'
 
 # Let your users translate their content into their languages without additional tables or columns in your tables
 # @author Beat Richartz
-# @version 0.0.2
+# @version 0.2.0
 # @since 0.0.1
 #
 module Babylonia
+  
+  # Helper Methods for locales
+  # @author Beat Richartz
+  # @version 0.0.2
+  # @since 0.0.1
+  #
+  module HelperMethods
+    # Return the currently active locale for the object
+    # @return [Symbol] The currently active locale
+    #
+    def locale
+      evaluate_localization_option!(:locale)
+    end
+    
+    # Return the default locale for the object
+    # @return [Symbol] The currently active locale
+    #
+    def default_locale
+      evaluate_localization_option!(:default_locale)
+    end
+    
+    # Return if the object falls back on translations
+    # @return [Boolean] if the translations fall back to the default locale
+    #
+    def locale_fallback?
+      evaluate_localization_option!(:fallback)
+    end
+    
+    # Return the missing translation placeholder
+    # @return [String] The missing translation placeholder
+    #
+    def missing_translation_placeholder field
+      evaluate_localization_option!(:placeholder, field)
+    end
+    
+    # Return if a translation in the language is stored in all translated fields
+    # @return [Boolean] True if a translation is stored
+    #
+    def has_locale? locale
+      locales.include?(locale.to_sym)
+    end
+    
+    # Return all the available locales
+    # @return [Array] An array of symbols of all available locales
+    # 
+    def available_locales
+      evaluate_localization_option!(:available_locales)
+    end
+    
+    # Return if a locale is theoretically available in all translated fields
+    # @return [Boolean] True if the language is available
+    #
+    def has_available_locale? locale
+      available_locales.include?(locale.to_sym)
+    end
+  end
+  
+  # Method missing implementation for virtual attributes
+  # @author Beat Richartz
+  # @version 0.0.2
+  # @since 0.0.1
+  #
+  module VirtualAttributes
+    # Define method missing to be able to access a language directly
+    # Enables to call a language virtual attribute directly
+    # @note Since the virtual attribute is called directly, there is no fallback on this unless you set it to true
+    # @example Call a getter directly
+    #   object.field_de #=> 'DEUTSCH'
+    # @example Call a setter directly
+    #   object.field_de = 'DEUTSCH'
+    # @example Call an untranslated field
+    #   object.field_it #=> nil
+    #
+    # @example Call a field with fallback
+    #   object.field_it(fallback: true)
+    def method_missing meth, *args, &block
+      if parts = extract_locale_method_parts(meth)
+        parts[2] ? send(parts[0] + parts[2].to_s, { parts[1].to_sym => args.first }) : send(parts[0], parts[1].to_sym, args.first || {})
+      else
+        super(meth, *args, &block)
+      end
+    end
+    
+    private
+    
+    def extract_locale_method_parts meth
+      if (parts = meth.to_s.match(/\A([^_]+)_(\w+)(=)?\z/).to_a[1..3]) && localized?(parts[0]) && has_available_locale?(parts[1])
+        parts
+      end
+    end
+  end
   
   # Class methods to extend a class with in order to make it able to handle translatable attributes
   #
@@ -68,54 +159,17 @@ module Babylonia
     end
     
     def install_virtual_locale_attributes_via_method_missing
-      # Define method missing to be able to access a language directly
-      # Enables to call a language virtual attribute directly
-      # @note Since the virtual attribute is called directly, there is no fallback on this unless you set it to true
-      # @example Call a getter directly
-      #   object.field_de #=> 'DEUTSCH'
-      # @example Call a setter directly
-      #   object.field_de = 'DEUTSCH'
-      # @example Call an untranslated field
-      #   object.field_it #=> nil
-      #
-      # @example Call a field with fallback
-      #   object.field_it(fallback: true)
-      define_method :method_missing do |meth, *args, &block|
-        if (m = meth.to_s.match(/\A([^_]+)_(\w+)(=)?\z/).to_a[1..3]) && localized?(m[0]) && has_available_locale?(m[1])
-          m[2] ? send(m[0] + m[2].to_s, {m[1].to_sym => args.first}) : send(m[0], m[1].to_sym, args.first || {})
-        else
-          super(meth, *args, &block)
-        end
-      end
+
     end
     
     def install_locale_helpers_for(fields)
-      # Return the currently active locale for the object
-      # @return [Symbol] The currently active locale
-      #
-      define_method :locale do
-        evaluate_localization_option!(:locale)
-      end
+      include HelperMethods
       
-      # Return the default locale for the object
-      # @return [Symbol] The currently active locale
-      #
-      define_method :default_locale do
-        evaluate_localization_option!(:default_locale)
-      end
-      
-      # Return if the object falls back on translations
-      # @return [Boolean] if the translations fall back to the default locale
-      #
-      define_method :locale_fallback? do
-        evaluate_localization_option!(:fallback)
-      end
-      
-      # Return the missing translation placeholder
-      # @return [String] The missing translation placeholder
-      #
-      define_method :missing_translation_placeholder do |field|
-        evaluate_localization_option!(:placeholder, field)
+      # Return if an attribute is localized
+      # @return [Boolean] True if the attribute is localized
+      # 
+      define_method :localized? do |attr|
+        fields.include?(attr.to_sym)
       end
       
       # Return languages stored in all translated fields
@@ -124,34 +178,6 @@ module Babylonia
       define_method :locales do
         first_field_locales = send(:"#{fields.first}_hash").keys
         fields.inject(first_field_locales){|o, f| o & send(:"#{f}_hash").keys }
-      end
-      
-      # Return if a translation in the language is stored in all translated fields
-      # @return [Boolean] True if a translation is stored
-      #
-      define_method :has_locale? do |locale|
-        locales.include?(locale.to_sym)
-      end
-      
-      # Return all the available locales
-      # @return [Array] An array of symbols of all available locales
-      # 
-      define_method :available_locales do
-        evaluate_localization_option!(:available_locales)
-      end
-      
-      # Return if a locale is theoretically available in all translated fields
-      # @return [Boolean] True if the language is available
-      #
-      define_method :has_available_locale? do |locale|
-        available_locales.include?(locale.to_sym)
-      end
-      
-      # Return if an attribute is localized
-      # @return [Boolean] True if the attribute is localized
-      # 
-      define_method :localized? do |attr|
-        fields.include?(attr.to_sym)
       end
     end
     
@@ -202,7 +228,7 @@ module Babylonia
       end
       
       install_locale_helpers_for(fields)
-      install_virtual_locale_attributes_via_method_missing
+      include VirtualAttributes
       install_locale_options_evaluation(options)
     end
   end
