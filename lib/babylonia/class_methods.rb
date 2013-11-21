@@ -62,6 +62,24 @@ module Babylonia
     def has_available_locale? locale
       available_locales.include?(locale.to_sym)
     end
+    
+    protected
+    
+    def translation_nil_or_empty? translation
+      translation.nil? or translation.empty?
+    end
+    
+    def dump_translation_locale_hash hash
+      YAML.dump(hash.delete_if{|k,v| translation_nil_or_empty?(v) })
+    end
+    
+    def fallback_to_default_locale!(hash, translation, options)
+      if translation_nil_or_empty?(translation) and options[:fallback] and locale_fallback?
+        hash[default_locale]
+      else
+        translation
+      end
+    end
   end
   
   # Method missing implementation for virtual attributes
@@ -115,8 +133,8 @@ module Babylonia
       define_method :"#{field}_translated" do |l=nil, options={fallback: true}|
         field_hash    = send(:"#{field}_hash")
         translation   = field_hash[l || locale]
-        translation   = field_hash[default_locale] if translation.nil? or translation.empty? and options[:fallback] and locale_fallback?
-        (translation.nil? or translation.empty?) ? missing_translation_placeholder(field) : translation
+        translation   = fallback_to_default_locale!(field_hash, translation, options)
+        translation_nil_or_empty?(translation) ? missing_translation_placeholder(field) : translation
       end
       alias_method :"#{field}_raw", field
       alias_method field, :"#{field}_translated"
@@ -152,7 +170,7 @@ module Babylonia
           current_hash.merge! data
         end
         
-        send(:"#{field}_raw=", YAML.dump(current_hash.delete_if{|k,v| v.nil? or v.empty? }))
+        send(:"#{field}_raw=", dump_translation_locale_hash(current_hash))
       end
       alias_method :"#{field}_raw=", :"#{field}="
       alias_method :"#{field}=", :"#{field}_translated="
@@ -162,16 +180,16 @@ module Babylonia
 
     end
     
-    def install_locale_helpers_for(fields)
-      include HelperMethods
-      
+    def install_localized_helper_for(fields)
       # Return if an attribute is localized
       # @return [Boolean] True if the attribute is localized
       # 
       define_method :localized? do |attr|
         fields.include?(attr.to_sym)
       end
-      
+    end
+    
+    def install_locales_helper_for(fields)
       # Return languages stored in all translated fields
       # @return [Array] An array containing all languages stored
       #
@@ -227,7 +245,10 @@ module Babylonia
         install_locale_field_hash_for(field)
       end
       
-      install_locale_helpers_for(fields)
+      include HelperMethods
+      install_localized_helper_for(fields)
+      install_locales_helper_for(fields)
+      
       include VirtualAttributes
       install_locale_options_evaluation(options)
     end
