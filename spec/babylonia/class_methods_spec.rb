@@ -6,9 +6,9 @@ describe Babylonia::ClassMethods do
     class BabylonianFields
       extend Babylonia::ClassMethods
     
-      attr_accessor :marshes, :sky
+      attr_accessor :marshes, :sky, :some_attr
     
-      build_babylonian_tower_on :marshes, :sky
+      build_babylonian_tower_on :marshes, :sky, :some_attr
     end
     
     before(:each) do
@@ -86,6 +86,13 @@ describe Babylonia::ClassMethods do
           let(:meth) { :marshes_something_else_entirely }
           it "should raise Method Missing" do
             lambda { subject.send(meth) }.should raise_error(NoMethodError)
+          end
+        end
+        context "with the missing method having underscores in the original method name" do
+          let(:meth) { :some_attr_en }
+          it "should call the attribute method with an argument" do
+            subject.should_receive(:some_attr).with(:en, {}).once
+            subject.send(meth)
           end
         end
         context "with the missing method matching the pattern but an unavailable language" do
@@ -170,6 +177,7 @@ describe Babylonia::ClassMethods do
       before(:each) do
         subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
         subject.sky_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.some_attr_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the translated languages of the field" do
         subject.locales.sort.should == [:de, :en, :it]
@@ -179,6 +187,7 @@ describe Babylonia::ClassMethods do
       before(:each) do
         subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
         subject.sky_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.some_attr_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       context "with the locale present in the translation hashes" do
         it "should return true" do

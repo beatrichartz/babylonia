@@ -111,7 +111,7 @@ module Babylonia
     private
     
     def extract_locale_method_parts meth
-      if (parts = meth.to_s.match(/\A([^_]+)_(\w+)(=)?\z/).to_a[1..3]) && localized?(parts[0]) && has_available_locale?(parts[1])
+      if (parts = meth.to_s.match(/\A(\w+)_(\w+)(=)?\z/).to_a[1..3]) && localized?(parts[0]) && has_available_locale?(parts[1])
         parts
       end
     end
