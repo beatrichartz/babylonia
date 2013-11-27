@@ -14,7 +14,7 @@ Try {babylonia-rails}[http://github.com/beatrichartz/babylonia-rails]
 Out of the necessity to let users translate page content. This gem does not add columns or records to your tables, or tables to your database. It is implemented based on YAML and stores the given data in a string.
 
 == Persistence is all yours
-Persistence is all yours. There will be a string for you to store, and you should just make sure it can get stored. That means that depending on the count of languages you let your users handle, and on the length of strings you expect to put them in, you should have a look at the different BLOB types your storage offers. A mysql TEXT field can soon run out of space (it takes up to 21,844 characters), but a MEDIUMTEXT e.g. is pretty gigantic and should keep the crocodiles out of your sewers.
+Persistence is all yours. There will be a string for you to store, and you should just make sure it can get stored. That means that depending on the count of languages you let your users handle, and on the length of strings you expect to put them in, you should have a look at the different TEXT types your storage offers. A mysql TEXT field can soon run out of space (it takes up to 21,844 characters), but a MEDIUMTEXT e.g. is pretty gigantic and should keep the crocodiles out of your sewers.
 
 == Gotchas
 Since the entire string will get stored in one field, you'll have to stop and ask yourself a question: Do you want to do database queries on the data in different languages? (like, let's say, sort by the translation users put in as an english translation for the field) If yes, it might be better for you to take a column based approach.
