@@ -1,4 +1,4 @@
-= babylonia {<img src="https://secure.travis-ci.org/beatrichartz/babylonia.png?branch=master" />}[http://travis-ci.org/beatrichartz/babylonia] {<img src="https://gemnasium.com/beatrichartz/babylonia.png" alt="Dependency Status" />}[https://gemnasium.com/beatrichartz/babylonia] {<img src="https://codeclimate.com/github/beatrichartz/babylonia.png" />}[https://codeclimate.com/github/beatrichartz/babylonia]
+= babylonia {<img src="https://secure.travis-ci.org/beatrichartz/babylonia.png?branch=master" />}[http://travis-ci.org/beatrichartz/babylonia] {<img src="https://gemnasium.com/beatrichartz/babylonia.png" alt="Dependency Status" />}[https://gemnasium.com/beatrichartz/babylonia] {<img src="https://codeclimate.com/github/beatrichartz/babylonia.png" />}[https://codeclimate.com/github/beatrichartz/babylonia] {<img src="https://d2weczhvl823v0.cloudfront.net/beatrichartz/babylonia/trend.png"}[https://bitdeli.com/free]
 Let there be languages for your users!
 
 == Installation
