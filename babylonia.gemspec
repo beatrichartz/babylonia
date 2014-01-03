@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.test_files        = `git ls-files -- spec/*`.split("\n")
   s.require_paths     = ["lib"]
   
-  s.add_dependency              "i18n", ">= 0.5.0"
-  s.add_development_dependency  "bundler", ">= 1.0.0"
+  s.add_dependency              "i18n", "~> 0.6.0", ">= 0.5.0"
+  s.add_development_dependency  "bundler", "~> 1.3.0", ">= 1.0.0"
 end
 

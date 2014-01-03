@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe Babylonia::ClassMethods do  
+  let(:yml_file) { RUBY_ENGINE == 'rbx' ? "--- \n" : "---\n" }
+  
   context "without options" do
     subject { BabylonianFields.new }
     class BabylonianFields
@@ -23,7 +25,7 @@ describe Babylonia::ClassMethods do
       end
       context "with some raw data" do
         before(:each) do
-          subject.stub marshes_raw: "---\n:en: TRANSLATION\n:de: FALLBACK"
+          subject.stub marshes_raw: "#{yml_file}:en: TRANSLATION\n:de: FALLBACK"
         end
         it "should return the data" do
           subject.marshes.should == "TRANSLATION"
@@ -41,7 +43,7 @@ describe Babylonia::ClassMethods do
       end
       context "with only fallback data" do
         before(:each) do
-          subject.stub marshes_raw: "---\n:de: FALLBACK"
+          subject.stub marshes_raw: "#{yml_file}:de: FALLBACK"
         end
         it "should return the fallback data" do
           subject.marshes.should == "FALLBACK"
@@ -54,7 +56,7 @@ describe Babylonia::ClassMethods do
       end
       context "with data in neither the current nor the fallback language" do
         before(:each) do
-          subject.stub marshes_raw: "---\n:it: NO_FALLBACK"
+          subject.stub marshes_raw: "#{yml_file}:it: NO_FALLBACK"
         end
         it "should return the fallback data" do
           subject.marshes.should be_nil
@@ -129,14 +131,14 @@ describe Babylonia::ClassMethods do
         context "with a string" do
           it "should set the current locales data" do
             subject.marshes = 'SOME ENGLISH'
-            subject.marshes_raw.should == "---\n:en: SOME ENGLISH\n"
+            subject.marshes_raw.should == "#{yml_file}:en: SOME ENGLISH\n"
             subject.marshes.should == 'SOME ENGLISH'
           end
         end
         context "with a hash" do
           it "should merge that hash with the existing data, if any" do
             subject.marshes = {en: 'SOME ENGLISH', de: 'SOME DEUTSCH'}
-            subject.marshes_raw.should == "---\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+            subject.marshes_raw.should == "#{yml_file}:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
             subject.marshes.should == 'SOME ENGLISH'
             subject.marshes(:de).should == 'SOME DEUTSCH'
           end
@@ -144,12 +146,12 @@ describe Babylonia::ClassMethods do
       end
       context "with existing data" do
         before(:each) do
-          subject.marshes_raw = "---\n:it: SOME ITALIAN"
+          subject.marshes_raw = "#{yml_file}:it: SOME ITALIAN"
         end
         context "with a string" do
           it "should set the current locales data" do
             subject.marshes = 'SOME ENGLISH'
-            subject.marshes_raw.should == "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n"
+            subject.marshes_raw.should == "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n"
             subject.marshes.should == 'SOME ENGLISH'
             subject.marshes(:it).should == 'SOME ITALIAN'
           end
@@ -157,7 +159,7 @@ describe Babylonia::ClassMethods do
         context "with a hash" do
           it "should merge that hash with the existing data, if any" do
             subject.marshes = {en: 'SOME ENGLISH', de: 'SOME DEUTSCH'}
-            subject.marshes_raw.should == "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+            subject.marshes_raw.should == "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
             subject.marshes.should == 'SOME ENGLISH'
             subject.marshes(:de).should == 'SOME DEUTSCH'
             subject.marshes(:it).should == 'SOME ITALIAN'
@@ -167,7 +169,7 @@ describe Babylonia::ClassMethods do
     end
     describe "#marshes_hash" do
       before(:each) do
-        subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.marshes_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the loaded hash of the field" do
         subject.marshes_hash.should == {it: 'SOME ITALIAN', en: 'SOME ENGLISH', de: 'SOME DEUTSCH'}
@@ -175,9 +177,9 @@ describe Babylonia::ClassMethods do
     end
     describe "#locales" do
       before(:each) do
-        subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
-        subject.sky_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
-        subject.some_attr_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.marshes_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.sky_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.some_attr_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the translated languages of the field" do
         subject.locales.sort.should == [:de, :en, :it]
@@ -185,9 +187,9 @@ describe Babylonia::ClassMethods do
     end
     describe "#has_locale?" do
       before(:each) do
-        subject.marshes_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
-        subject.sky_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
-        subject.some_attr_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.marshes_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.sky_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.some_attr_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       context "with the locale present in the translation hashes" do
         it "should return true" do
@@ -282,7 +284,7 @@ describe Babylonia::ClassMethods do
       end
       context "with some raw data" do
         before(:each) do
-          subject.stub grasslands_raw: "---\n:pi: TRANSLATION\n:de: FALLBACK"
+          subject.stub grasslands_raw: "#{yml_file}:pi: TRANSLATION\n:de: FALLBACK"
         end
         it "should return the data" do
           subject.grasslands.should == "TRANSLATION"
@@ -300,7 +302,7 @@ describe Babylonia::ClassMethods do
       end
       context "with only fallback data" do
         before(:each) do
-          subject.stub grasslands_raw: "---\n:en: FALLBACK"
+          subject.stub grasslands_raw: "#{yml_file}:en: FALLBACK"
         end
         it "should not return the fallback data" do
           subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
@@ -313,7 +315,7 @@ describe Babylonia::ClassMethods do
       end
       context "with data in neither the current nor the fallback language" do
         before(:each) do
-          subject.stub grasslands_raw: "---\n:it: NO_FALLBACK"
+          subject.stub grasslands_raw: "#{yml_file}:it: NO_FALLBACK"
         end
         it "should return the fallback data" do
           subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
@@ -326,7 +328,7 @@ describe Babylonia::ClassMethods do
       end
       context "with fallback data, but fallback disabled" do
         before(:each) do
-          subject.stub desert_raw: "---\n:it: NO_FALLBACK"
+          subject.stub desert_raw: "#{yml_file}:it: NO_FALLBACK"
         end
         it "should not return the fallback data and display the placeholder" do
           subject.desert.should == "<span class='missing translation'>Translation missing for desert</span>"
@@ -343,14 +345,14 @@ describe Babylonia::ClassMethods do
         context "with a string" do
           it "should set the current locales data" do
             subject.grasslands = 'SOME PIRATE'
-            subject.grasslands_raw.should == "---\n:pi: SOME PIRATE\n"
+            subject.grasslands_raw.should == "#{yml_file}:pi: SOME PIRATE\n"
             subject.grasslands.should == 'SOME PIRATE'
           end
         end
         context "with a hash" do
           it "should merge that hash with the existing data, if any" do
             subject.grasslands = {pi: 'SOME PIRATE', de: 'SOME DEUTSCH'}
-            subject.grasslands_raw.should == "---\n:pi: SOME PIRATE\n:de: SOME DEUTSCH\n"
+            subject.grasslands_raw.should == "#{yml_file}:pi: SOME PIRATE\n:de: SOME DEUTSCH\n"
             subject.grasslands.should == 'SOME PIRATE'
             subject.grasslands(:de).should == 'SOME DEUTSCH'
           end
@@ -358,12 +360,12 @@ describe Babylonia::ClassMethods do
       end
       context "with existing data" do
         before(:each) do
-          subject.grasslands_raw = "---\n:it: SOME ITALIAN"
+          subject.grasslands_raw = "#{yml_file}:it: SOME ITALIAN"
         end
         context "with a string" do
           it "should set the current locales data" do
             subject.grasslands = 'SOME PIRATE'
-            subject.grasslands_raw.should == "---\n:it: SOME ITALIAN\n:pi: SOME PIRATE\n"
+            subject.grasslands_raw.should == "#{yml_file}:it: SOME ITALIAN\n:pi: SOME PIRATE\n"
             subject.grasslands.should == 'SOME PIRATE'
             subject.grasslands(:it).should == 'SOME ITALIAN'
           end
@@ -371,7 +373,7 @@ describe Babylonia::ClassMethods do
         context "with a hash" do
           it "should merge that hash with the existing data, if any" do
             subject.grasslands = {pi: 'SOME PIRATE', de: 'SOME DEUTSCH'}
-            subject.grasslands_raw.should == "---\n:it: SOME ITALIAN\n:pi: SOME PIRATE\n:de: SOME DEUTSCH\n"
+            subject.grasslands_raw.should == "#{yml_file}:it: SOME ITALIAN\n:pi: SOME PIRATE\n:de: SOME DEUTSCH\n"
             subject.grasslands.should == 'SOME PIRATE'
             subject.grasslands(:de).should == 'SOME DEUTSCH'
             subject.grasslands(:it).should == 'SOME ITALIAN'
@@ -407,8 +409,8 @@ describe Babylonia::ClassMethods do
     end
     describe "#locales" do
       before(:each) do
-        subject.grasslands_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
-        subject.desert_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.grasslands_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.desert_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the translated languages of the field" do
         subject.locales.sort.should == [:de, :en, :it]
@@ -416,8 +418,8 @@ describe Babylonia::ClassMethods do
     end
     describe "#has_locale?" do
       before(:each) do
-        subject.grasslands_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
-        subject.desert_raw = "---\n:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.grasslands_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
+        subject.desert_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       context "with the locale present in the translation hashes" do
         it "should return true" do
