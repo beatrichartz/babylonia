@@ -20,7 +20,7 @@ describe Babylonia::ClassMethods do
     describe "#marshes" do
       context "with no data" do
         it "should return nil" do
-          subject.marshes.should be_nil
+          expect(subject.marshes).to be_nil
         end
       end
       context "with some raw data" do
@@ -28,15 +28,15 @@ describe Babylonia::ClassMethods do
           subject.stub marshes_raw: "#{yml_file}:en: TRANSLATION\n:de: FALLBACK"
         end
         it "should return the data" do
-          subject.marshes.should == "TRANSLATION"
+          expect(subject.marshes).to eq("TRANSLATION")
         end
         context "with a locale argument" do
           it "should return the translation in that locale" do
-            subject.marshes(:de).should == 'FALLBACK'
+            expect(subject.marshes(:de)).to eq('FALLBACK')
           end
           context "with fallback to false" do
             it "should return nil" do
-              subject.marshes(:it, fallback: false).should be_nil
+              expect(subject.marshes(:it, fallback: false)).to be_nil
             end
           end
         end
@@ -46,11 +46,11 @@ describe Babylonia::ClassMethods do
           subject.stub marshes_raw: "#{yml_file}:de: FALLBACK"
         end
         it "should return the fallback data" do
-          subject.marshes.should == "FALLBACK"
+          expect(subject.marshes).to eq("FALLBACK")
         end
         context "with a locale argument" do
           it "should return the fallback" do
-            subject.marshes(:en).should == 'FALLBACK'
+            expect(subject.marshes(:en)).to eq('FALLBACK')
           end
         end
       end
@@ -59,11 +59,11 @@ describe Babylonia::ClassMethods do
           subject.stub marshes_raw: "#{yml_file}:it: NO_FALLBACK"
         end
         it "should return the fallback data" do
-          subject.marshes.should be_nil
+          expect(subject.marshes).to be_nil
         end
         context "with a locale argument" do
           it "should return the fallback" do
-            subject.marshes(:en).should be_nil
+            expect(subject.marshes(:en)).to be_nil
           end
         end
       end
@@ -73,34 +73,34 @@ describe Babylonia::ClassMethods do
         context "with the missing method matching the pattern FIELD_LANGUAGE" do
           let(:meth) { :marshes_en }
           it "should call the attribute method with an argument" do
-            subject.should_receive(:marshes).with(:en, {}).once
+            expect(subject).to receive(:marshes).with(:en, {}).once
             subject.send(meth)
           end
         end
         context "with the missing method matching the pattern FIELD_LANGUAGE and a fallback argument" do
           let(:meth) { :marshes_en }
           it "should call the attribute method with the fallback argument" do
-            subject.should_receive(:marshes).with(:en, {fallback: true}).once
+            expect(subject).to receive(:marshes).with(:en, {fallback: true}).once
             subject.send(meth, fallback: true)
           end
         end
         context "with the missing method not matching the pattern" do
           let(:meth) { :marshes_something_else_entirely }
           it "should raise Method Missing" do
-            lambda { subject.send(meth) }.should raise_error(NoMethodError)
+            expect { subject.send(meth) }.to raise_error(NoMethodError)
           end
         end
         context "with the missing method having underscores in the original method name" do
           let(:meth) { :some_attr_en }
           it "should call the attribute method with an argument" do
-            subject.should_receive(:some_attr).with(:en, {}).once
+            expect(subject).to receive(:some_attr).with(:en, {}).once
             subject.send(meth)
           end
         end
         context "with the missing method matching the pattern but an unavailable language" do
           let(:meth) { :marshes_he }
           it "should raise Method Missing" do
-            lambda { subject.send(meth) }.should raise_error(NoMethodError)
+            expect { subject.send(meth) }.to raise_error(NoMethodError)
           end
         end
       end
@@ -108,20 +108,20 @@ describe Babylonia::ClassMethods do
         context "with the missing method matching the pattern FIELD_LANGUAGE=" do
           let(:meth) { :marshes_en= }
           it "should call the attribute method with an argument" do
-            subject.should_receive(:marshes=).with(en: 'DATA').once
+            expect(subject).to receive(:marshes=).with(en: 'DATA').once
             subject.send(meth, 'DATA')
           end
         end
         context "with the missing method not matching the pattern" do
           let(:meth) { :marshes_something_else_entirely }
           it "should raise Method Missing" do
-            lambda { subject.send(meth) }.should raise_error(NoMethodError)
+            expect { subject.send(meth) }.to raise_error(NoMethodError)
           end
         end
         context "with the missing method matching the pattern but an unavailable language" do
           let(:meth) { :marshes_he }
           it "should raise Method Missing" do
-            lambda { subject.send(meth) }.should raise_error(NoMethodError)
+            expect { subject.send(meth) }.to raise_error(NoMethodError)
           end
         end
       end
@@ -131,16 +131,16 @@ describe Babylonia::ClassMethods do
         context "with a string" do
           it "should set the current locales data" do
             subject.marshes = 'SOME ENGLISH'
-            subject.marshes_raw.should == "#{yml_file}:en: SOME ENGLISH\n"
-            subject.marshes.should == 'SOME ENGLISH'
+            expect(subject.marshes_raw).to eq("#{yml_file}:en: SOME ENGLISH\n")
+            expect(subject.marshes).to eq('SOME ENGLISH')
           end
         end
         context "with a hash" do
           it "should merge that hash with the existing data, if any" do
             subject.marshes = {en: 'SOME ENGLISH', de: 'SOME DEUTSCH'}
-            subject.marshes_raw.should == "#{yml_file}:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
-            subject.marshes.should == 'SOME ENGLISH'
-            subject.marshes(:de).should == 'SOME DEUTSCH'
+            expect(subject.marshes_raw).to eq("#{yml_file}:en: SOME ENGLISH\n:de: SOME DEUTSCH\n")
+            expect(subject.marshes).to eq('SOME ENGLISH')
+            expect(subject.marshes(:de)).to eq('SOME DEUTSCH')
           end
         end
       end
@@ -151,18 +151,18 @@ describe Babylonia::ClassMethods do
         context "with a string" do
           it "should set the current locales data" do
             subject.marshes = 'SOME ENGLISH'
-            subject.marshes_raw.should == "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n"
-            subject.marshes.should == 'SOME ENGLISH'
-            subject.marshes(:it).should == 'SOME ITALIAN'
+            expect(subject.marshes_raw).to eq("#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n")
+            expect(subject.marshes).to eq('SOME ENGLISH')
+            expect(subject.marshes(:it)).to eq('SOME ITALIAN')
           end
         end
         context "with a hash" do
           it "should merge that hash with the existing data, if any" do
             subject.marshes = {en: 'SOME ENGLISH', de: 'SOME DEUTSCH'}
-            subject.marshes_raw.should == "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
-            subject.marshes.should == 'SOME ENGLISH'
-            subject.marshes(:de).should == 'SOME DEUTSCH'
-            subject.marshes(:it).should == 'SOME ITALIAN'
+            expect(subject.marshes_raw).to eq("#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n")
+            expect(subject.marshes).to eq('SOME ENGLISH')
+            expect(subject.marshes(:de)).to eq('SOME DEUTSCH')
+            expect(subject.marshes(:it)).to eq('SOME ITALIAN')
           end
         end
       end
@@ -172,7 +172,7 @@ describe Babylonia::ClassMethods do
         subject.marshes_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the loaded hash of the field" do
-        subject.marshes_hash.should == {it: 'SOME ITALIAN', en: 'SOME ENGLISH', de: 'SOME DEUTSCH'}
+        expect(subject.marshes_hash).to eq({it: 'SOME ITALIAN', en: 'SOME ENGLISH', de: 'SOME DEUTSCH'})
       end
     end
     describe "#locales" do
@@ -182,7 +182,7 @@ describe Babylonia::ClassMethods do
         subject.some_attr_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the translated languages of the field" do
-        subject.locales.sort.should == [:de, :en, :it]
+        expect(subject.locales.sort).to eq([:de, :en, :it])
       end
     end
     describe "#has_locale?" do
@@ -193,12 +193,12 @@ describe Babylonia::ClassMethods do
       end
       context "with the locale present in the translation hashes" do
         it "should return true" do
-          subject.should be_has_locale(:it)
+          expect(subject).to be_has_locale(:it)
         end
       end
       context "with the locale not present in the translation hashes" do
         it "should return true" do
-          subject.should_not be_has_locale(:pi)
+          expect(subject).not_to be_has_locale(:pi)
         end
       end
     end
@@ -207,7 +207,7 @@ describe Babylonia::ClassMethods do
         I18n.stub available_locales: [:de, :en]
       end
       it "should return available locales" do
-        subject.available_locales.sort.should == [:de, :en]
+        expect(subject.available_locales.sort).to eq([:de, :en])
       end
     end
     describe "#has_available_locale" do
@@ -216,35 +216,35 @@ describe Babylonia::ClassMethods do
       end
       context "with an available locale" do
         it "should return true" do
-          subject.should be_has_available_locale(:de)
+          expect(subject).to be_has_available_locale(:de)
         end
       end
       context "with an available locale" do
         it "should return true" do
-          subject.should_not be_has_available_locale(:it)
+          expect(subject).not_to be_has_available_locale(:it)
         end
       end
     end
     describe "#localized?" do
       context "with a localized attribute" do
         it "should return true" do
-          subject.should be_localized(:sky)
+          expect(subject).to be_localized(:sky)
         end
       end
       context "with a unlocalized attribute" do
         it "should return true" do
-          subject.should_not be_localized(:desert)
+          expect(subject).not_to be_localized(:desert)
         end
       end
     end
     describe "#missing_translation_placeholder" do
       it "should return nil" do
-        subject.missing_translation_placeholder('FIELD').should be_nil
+        expect(subject.missing_translation_placeholder('FIELD')).to be_nil
       end
     end
     describe "#locale_fallback?" do
       it "should return false" do
-        subject.should be_locale_fallback
+        expect(subject).to be_locale_fallback
       end
     end
   end
@@ -279,7 +279,7 @@ describe Babylonia::ClassMethods do
     describe "#grasslands" do
       context "with no data" do
         it "should return the placeholder" do
-          subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
+          expect(subject.grasslands).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
         end
       end
       context "with some raw data" do
@@ -287,15 +287,15 @@ describe Babylonia::ClassMethods do
           subject.stub grasslands_raw: "#{yml_file}:pi: TRANSLATION\n:de: FALLBACK"
         end
         it "should return the data" do
-          subject.grasslands.should == "TRANSLATION"
+          expect(subject.grasslands).to eq("TRANSLATION")
         end
         context "with a locale argument" do
           it "should return the translation in that locale" do
-            subject.grasslands(:de).should == 'FALLBACK'
+            expect(subject.grasslands(:de)).to eq('FALLBACK')
           end
           context "with fallback to false" do
             it "should return the placeholder" do
-              subject.grasslands(:gb, fallback: false).should == "<span class='missing translation'>Translation missing for grasslands</span>"
+              expect(subject.grasslands(:gb, fallback: false)).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
             end
           end
         end
@@ -305,11 +305,11 @@ describe Babylonia::ClassMethods do
           subject.stub grasslands_raw: "#{yml_file}:en: FALLBACK"
         end
         it "should not return the fallback data" do
-          subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
+          expect(subject.grasslands).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
         end
         context "with a locale argument" do
           it "should return the not return the fallback" do
-            subject.grasslands(:pi).should == "<span class='missing translation'>Translation missing for grasslands</span>"
+            expect(subject.grasslands(:pi)).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
           end
         end
       end
@@ -318,11 +318,11 @@ describe Babylonia::ClassMethods do
           subject.stub grasslands_raw: "#{yml_file}:it: NO_FALLBACK"
         end
         it "should return the fallback data" do
-          subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
+          expect(subject.grasslands).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
         end
         context "with a locale argument" do
           it "should return the fallback" do
-            subject.grasslands(:en).should == "<span class='missing translation'>Translation missing for grasslands</span>"
+            expect(subject.grasslands(:en)).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
           end
         end
       end
@@ -331,11 +331,11 @@ describe Babylonia::ClassMethods do
           subject.stub desert_raw: "#{yml_file}:it: NO_FALLBACK"
         end
         it "should not return the fallback data and display the placeholder" do
-          subject.desert.should == "<span class='missing translation'>Translation missing for desert</span>"
+          expect(subject.desert).to eq("<span class='missing translation'>Translation missing for desert</span>")
         end
         context "with a locale argument" do
           it "should not return the fallback and display the placeholder" do
-            subject.desert(:pi).should == "<span class='missing translation'>Translation missing for desert</span>"
+            expect(subject.desert(:pi)).to eq("<span class='missing translation'>Translation missing for desert</span>")
           end
         end
       end
@@ -345,16 +345,16 @@ describe Babylonia::ClassMethods do
         context "with a string" do
           it "should set the current locales data" do
             subject.grasslands = 'SOME PIRATE'
-            subject.grasslands_raw.should == "#{yml_file}:pi: SOME PIRATE\n"
-            subject.grasslands.should == 'SOME PIRATE'
+            expect(subject.grasslands_raw).to eq("#{yml_file}:pi: SOME PIRATE\n")
+            expect(subject.grasslands).to eq('SOME PIRATE')
           end
         end
         context "with a hash" do
           it "should merge that hash with the existing data, if any" do
             subject.grasslands = {pi: 'SOME PIRATE', de: 'SOME DEUTSCH'}
-            subject.grasslands_raw.should == "#{yml_file}:pi: SOME PIRATE\n:de: SOME DEUTSCH\n"
-            subject.grasslands.should == 'SOME PIRATE'
-            subject.grasslands(:de).should == 'SOME DEUTSCH'
+            expect(subject.grasslands_raw).to eq("#{yml_file}:pi: SOME PIRATE\n:de: SOME DEUTSCH\n")
+            expect(subject.grasslands).to eq('SOME PIRATE')
+            expect(subject.grasslands(:de)).to eq('SOME DEUTSCH')
           end
         end
       end
@@ -365,43 +365,43 @@ describe Babylonia::ClassMethods do
         context "with a string" do
           it "should set the current locales data" do
             subject.grasslands = 'SOME PIRATE'
-            subject.grasslands_raw.should == "#{yml_file}:it: SOME ITALIAN\n:pi: SOME PIRATE\n"
-            subject.grasslands.should == 'SOME PIRATE'
-            subject.grasslands(:it).should == 'SOME ITALIAN'
+            expect(subject.grasslands_raw).to eq("#{yml_file}:it: SOME ITALIAN\n:pi: SOME PIRATE\n")
+            expect(subject.grasslands).to eq('SOME PIRATE')
+            expect(subject.grasslands(:it)).to eq('SOME ITALIAN')
           end
         end
         context "with a hash" do
           it "should merge that hash with the existing data, if any" do
             subject.grasslands = {pi: 'SOME PIRATE', de: 'SOME DEUTSCH'}
-            subject.grasslands_raw.should == "#{yml_file}:it: SOME ITALIAN\n:pi: SOME PIRATE\n:de: SOME DEUTSCH\n"
-            subject.grasslands.should == 'SOME PIRATE'
-            subject.grasslands(:de).should == 'SOME DEUTSCH'
-            subject.grasslands(:it).should == 'SOME ITALIAN'
+            expect(subject.grasslands_raw).to eq("#{yml_file}:it: SOME ITALIAN\n:pi: SOME PIRATE\n:de: SOME DEUTSCH\n")
+            expect(subject.grasslands).to eq('SOME PIRATE')
+            expect(subject.grasslands(:de)).to eq('SOME DEUTSCH')
+            expect(subject.grasslands(:it)).to eq('SOME ITALIAN')
           end
         end
         context "deleting a value" do
           context "with a string" do
             it "should be deleted" do
               subject.grasslands = ''
-              subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
+              expect(subject.grasslands).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
             end
           end
           context "with nil" do
             it "should be deleted" do
               subject.grasslands = nil
-              subject.grasslands.should == "<span class='missing translation'>Translation missing for grasslands</span>"
+              expect(subject.grasslands).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
             end 
           end
           context "with a hash containing an empty string" do
             it "should be deleted" do
               subject.grasslands = {it: ''}
-              subject.grasslands(:it).should == "<span class='missing translation'>Translation missing for grasslands</span>"
+              expect(subject.grasslands(:it)).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
             end 
           end
           context "with a hash containing nil" do
             it "should be deleted" do
               subject.grasslands = {it: nil}
-              subject.grasslands(:it).should == "<span class='missing translation'>Translation missing for grasslands</span>"
+              expect(subject.grasslands(:it)).to eq("<span class='missing translation'>Translation missing for grasslands</span>")
             end 
           end
         end
@@ -413,7 +413,7 @@ describe Babylonia::ClassMethods do
         subject.desert_raw = "#{yml_file}:it: SOME ITALIAN\n:en: SOME ENGLISH\n:de: SOME DEUTSCH\n"
       end
       it "should return the translated languages of the field" do
-        subject.locales.sort.should == [:de, :en, :it]
+        expect(subject.locales.sort).to eq([:de, :en, :it])
       end
     end
     describe "#has_locale?" do
@@ -423,52 +423,52 @@ describe Babylonia::ClassMethods do
       end
       context "with the locale present in the translation hashes" do
         it "should return true" do
-          subject.should be_has_locale(:it)
+          expect(subject).to be_has_locale(:it)
         end
       end
       context "with the locale not present in the translation hashes" do
         it "should return true" do
-          subject.should_not be_has_locale(:pi)
+          expect(subject).not_to be_has_locale(:pi)
         end
       end
     end
     describe "#available_locales" do
       it "should return available locales" do
-        subject.available_locales.sort.should == [:de, :en, :it, :pi]
+        expect(subject.available_locales.sort).to eq([:de, :en, :it, :pi])
       end
     end
     describe "#has_available_locale" do
       context "with an available locale" do
         it "should return true" do
-          subject.should be_has_available_locale(:pi)
+          expect(subject).to be_has_available_locale(:pi)
         end
       end
       context "with an available locale" do
         it "should return true" do
-          subject.should_not be_has_available_locale(:gb)
+          expect(subject).not_to be_has_available_locale(:gb)
         end
       end
     end
     describe "#localized?" do
       context "with a localized attribute" do
         it "should return true" do
-          subject.should be_localized(:grasslands)
+          expect(subject).to be_localized(:grasslands)
         end
       end
       context "with a unlocalized attribute" do
         it "should return true" do
-          subject.should_not be_localized(:fields)
+          expect(subject).not_to be_localized(:fields)
         end
       end
     end
     describe "#missing_translation_placeholder" do
       it "should return the defined placeholder for the field" do
-        subject.missing_translation_placeholder('FIELD').should == "<span class='missing translation'>Translation missing for FIELD</span>"
+        expect(subject.missing_translation_placeholder('FIELD')).to eq("<span class='missing translation'>Translation missing for FIELD</span>")
       end
     end
     describe "#locale_fallback?" do
       it "should return false" do
-        subject.should_not be_locale_fallback
+        expect(subject).not_to be_locale_fallback
       end
     end
   end
